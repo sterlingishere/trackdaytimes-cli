@@ -34,14 +34,28 @@ account. Each account has one key; **Revoke** switches it off at once, and you c
 
 ## Install
 
-With [Rust](https://rustup.rs) installed:
+**Download:** get the file for your computer from the latest
+[release](https://github.com/sterlingishere/trackdaytimes-cli/releases/latest):
+
+| Computer | File |
+| --- | --- |
+| Mac with Apple silicon (M1 and later) | `tdt-…-aarch64-apple-darwin.tar.gz` |
+| Mac with an Intel chip | `tdt-…-x86_64-apple-darwin.tar.gz` |
+| Linux (64-bit) | `tdt-…-x86_64-unknown-linux-gnu.tar.gz` |
+| Windows (64-bit) | `tdt-…-x86_64-pc-windows-msvc.zip` |
+
+Unpack it and put `tdt` (`tdt.exe` on Windows) in a folder on your `PATH`, such as `/usr/local/bin`. The Mac
+builds aren't signed, so macOS may refuse to open one at first; allow it once with:
+
+```sh
+xattr -d com.apple.quarantine /usr/local/bin/tdt
+```
+
+**Or build it** with [Rust](https://rustup.rs) installed:
 
 ```sh
 cargo install --git https://github.com/sterlingishere/trackdaytimes-cli
 ```
-
-This installs the `tdt` command. Ready-made downloads for macOS, Linux and Windows are on the
-[Releases](https://github.com/sterlingishere/trackdaytimes-cli/releases) page once a version is published.
 
 Then sign in with your key:
 
@@ -121,10 +135,60 @@ car_number, session_key, session_name, session_kind, lap_number, time_ms, driver
 file they uploaded), and empty for the organiser's official timing. `tag` is `WR` (the layout's lap record), `PB`
 (the driver's best on that layout) or `Best` (they've been faster there since).
 
+## Use your key with MCP
+
+TrackDayTimes also runs an [MCP server](https://trackdaytimes.com/mcp) at `https://mcp.trackdaytimes.com`, so AI
+assistants (Claude, ChatGPT and others) can look up lap times, events, drivers and rankings for you. It works without
+a key. Add yours for higher limits, either as a header:
+
+```text
+Authorization: Bearer tdtk_your_key
+```
+
+or, if your app only lets you enter a URL, at the end of the server address:
+
+```text
+https://mcp.trackdaytimes.com/?key=tdtk_your_key
+```
+
+A key that's wrong or revoked is refused with "This API key isn't valid", so you know to fix it.
+
+## Use the API directly
+
+Everything the CLI does is plain HTTPS and JSON, so you can call it from any language. Send your key in the
+`Authorization` header:
+
+```sh
+curl -H "Authorization: Bearer $TDT_API_KEY" https://trackdaytimes.com/api/v1/export/events
+```
+
+Responses are camelCase JSON, lap times are integer milliseconds (`bestLapMs`, `timeMs`), and every object with a
+page on the site carries `href`, its path there. Lists take `limit` and `offset` and say their `total`.
+
+**Needs a key:**
+
+| Path | What it returns |
+| --- | --- |
+| `/api/v1/key` | Whose key it is and its limit |
+| `/api/v1/export/events` | Every event, oldest first |
+| `/api/v1/export/events/{slug}/results` | An event's results, one row per car |
+| `/api/v1/export/events/{slug}/laps` | Every lap at an event |
+
+**Also readable with a key:** `/api/v1/tracks`, `/api/v1/tracks/{track}`,
+`/api/v1/tracks/{track}/layouts/{layout}/rankings`, `/api/v1/events`, `/api/v1/events/{slug}`,
+`/api/v1/events/{slug}/cars/{car}`, `/api/v1/cars/{slug}`, `/api/v1/models`, `/api/v1/models/{slug}`,
+`/api/v1/rankings/cars`, `/api/v1/rankings/drivers`, `/api/v1/drivers`, `/api/v1/drivers/{handle}`,
+`/api/v1/teams`, `/api/v1/teams/{slug}`, `/api/v1/organizations`, `/api/v1/search?q=…`.
+
+To see any answer in full, run `tdt api <path> | jq`, or add `--json` to any command. Errors come back as
+`{"error": {"code", "message"}}` with the matching status: 401 for a missing or invalid key, 404 for an event, driver,
+car or track that doesn't exist, and 429 with `Retry-After` when you're going too fast.
+
 ## Limits
 
 Each key can make 3,000 requests a minute that aren't already cached (most reads are cached, and cached reads don't
-count). If you go over, the API answers "slow down" and the CLI waits and tries again by itself. Please don't share
+count). If you go over, the API answers "slow down" and the CLI waits and tries again by itself. The CLI and MCP
+share your key's limit. Please don't share
 your key: anything done with it is tied to your account, and a key that's misused can be switched off.
 
 ## The data and how you may use it
@@ -153,5 +217,3 @@ cargo test
 
 `--api-url` (or `TDT_API_URL`) points the CLI at another copy of the site, such as
 `https://dev.trackdaytimes.com`. A key works only on the site it was made on.
-
-The API itself is documented by what the commands call: `tdt api <path> | jq` shows any answer in full.
