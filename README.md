@@ -25,12 +25,12 @@ The CLI needs a free TrackDayTimes account and an API key:
 
 1. Sign in at [trackdaytimes.com](https://trackdaytimes.com). If you don't have an account, signing in with your
    email makes one.
-2. Open **Settings → API keys** ([trackdaytimes.com/settings#api-keys](https://trackdaytimes.com/settings#api-keys)),
-   give the key a name (like "My laptop") and press **Create key**.
-3. Copy the key. It starts with `tdtk_` and is shown only once.
+2. Open **Settings → API key** ([trackdaytimes.com/settings#api-keys](https://trackdaytimes.com/settings#api-keys))
+   and press **Create key**.
+3. Press **Copy**. The key starts with `tdtk_`, and you can show or copy it there again at any time.
 
 A key can read public data only, the same data the website shows. It can't see or change anything about your
-account. You can have up to five keys and revoke any of them in Settings at any time.
+account. Each account has one key; **Revoke** switches it off at once, and you can then make a new one.
 
 ## Install
 

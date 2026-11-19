@@ -128,7 +128,7 @@ pub fn login(api_url: &str, flag_key: Option<String>) -> Result<()> {
         Some(key) => key,
         None => {
             eprintln!(
-                "Make a key at {DEFAULT_API}/settings#api-keys (Settings, API keys), then paste it here."
+                "Make a key at {DEFAULT_API}/settings#api-keys (Settings, API key), then paste it here."
             );
             rpassword::prompt_password("API key: ").context("Couldn't read the key.")?
         }
@@ -141,14 +141,11 @@ pub fn login(api_url: &str, flag_key: Option<String>) -> Result<()> {
     let me = client.get("key", &[])?;
     let path = Config { api_key: Some(key) }.save()?;
     println!(
-        "Signed in as {} (@{}) with the key \"{}\". Saved to {}.",
+        "Signed in as {} (@{}). Saved to {}.",
         me.pointer("/person/displayName")
             .and_then(Value::as_str)
             .unwrap_or("?"),
         me.pointer("/person/handle")
-            .and_then(Value::as_str)
-            .unwrap_or("?"),
-        me.pointer("/apiKey/name")
             .and_then(Value::as_str)
             .unwrap_or("?"),
         path.display()
@@ -159,7 +156,7 @@ pub fn login(api_url: &str, flag_key: Option<String>) -> Result<()> {
 pub fn logout() -> Result<()> {
     if Config::clear()? {
         println!(
-            "Forgot the saved key. (It still works until you revoke it in Settings, API keys.)"
+            "Forgot the saved key. (It still works until you revoke it in Settings, API key.)"
         );
     } else {
         println!("No key was saved.");
@@ -172,14 +169,11 @@ pub fn whoami(client: &Client, out: &mut dyn Write, format: Format) -> Result<()
     if format == Format::Table {
         writeln!(
             out,
-            "{} (@{}), key \"{}\" ({}…), {} uncached reads a minute",
+            "{} (@{}), key {}…, {} uncached reads a minute",
             me.pointer("/person/displayName")
                 .and_then(Value::as_str)
                 .unwrap_or("?"),
             me.pointer("/person/handle")
-                .and_then(Value::as_str)
-                .unwrap_or("?"),
-            me.pointer("/apiKey/name")
                 .and_then(Value::as_str)
                 .unwrap_or("?"),
             me.pointer("/apiKey/prefix")

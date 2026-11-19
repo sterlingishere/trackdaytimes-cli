@@ -62,7 +62,7 @@ pub struct Paging {
 
 #[derive(Subcommand)]
 enum Command {
-    /// Save your API key (from trackdaytimes.com, Settings, API keys).
+    /// Save your API key (from trackdaytimes.com, Settings, API key).
     Login,
     /// Forget the saved API key.
     Logout,
